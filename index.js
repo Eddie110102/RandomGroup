@@ -86,7 +86,7 @@ assignBTN.addEventListener("click", function () {
 //執行預設方法
 assignBTN.click();
 
-//綁定預設分組按鈕事件
+// //綁定預設分組按鈕事件
 Array.from(document.getElementsByClassName("groupCountBTN")).forEach((b) => {
   b.addEventListener("click", function () {
     totalGroups.value = this.innerHTML;
@@ -96,7 +96,6 @@ Array.from(document.getElementsByClassName("groupCountBTN")).forEach((b) => {
     }
     // 點擊變橘色
     this.classList.add("active");
-    assignBTN.click();
   });
 });
 
@@ -175,29 +174,31 @@ memberHome.addEventListener("change", () => {
 
 //保存分組資料
 function saveData() {
+  let UUID = getUUID();
+
   let t,
     saveData =
       (t = localStorage.getItem("saveData")) === null ? [] : JSON.parse(t);
 
   saveData.push({
-    id: getUUID(),
+    id: UUID,
     groups: finalGroups,
     originData: memberHome.value,
   });
 
   localStorage.setItem("saveData", JSON.stringify(saveData));
 
-  renderSaveData(saveData);
+  renderSaveData(saveData, UUID);
 }
 
 //渲染分組資料按鈕
-function renderSaveData(saveData) {
+function renderSaveData(saveData, uid) {
   let outPutBTNs = "";
   saveData.forEach((s) => {
-    outPutBTNs += `<button class='saveDataBTN' id='${s.id}'>${s.id.slice(
-      0,
-      6
-    )}</button>`;
+    console.log("s", s, "uid", uid);
+    outPutBTNs += `<button class='saveDataBTN ${
+      s.id == uid ? "active" : ""
+    }' id='${s.id}'>${s.id.slice(0, 6)}</button>`;
   });
   saveDataBTNs.innerHTML = outPutBTNs;
 }
@@ -216,8 +217,8 @@ saveDataBTNs.addEventListener("click", function (e) {
     const historyBTNs = document.querySelectorAll(".saveDataBTN");
     Array(historyBTNs).map((a, b) => {
       for (let x = 0; x < a.length; x++) {
-        a[x].classList.remove('active')
-        if (a[x].id == e.target.id,e.target) {
+        a[x].classList.remove("active");
+        if ((a[x].id == e.target.id, e.target)) {
           e.target.classList.add("active");
         }
       }
