@@ -5,12 +5,12 @@ const assignBTN = document.getElementById("assignBTN");
 const clearBTN = document.getElementById("clearBTN");
 const groupHome = document.getElementById("groupHome");
 const groupCountBTNs = document.getElementById("groupCountBTNs");
-const saveDataBTNs = document.getElementsByClassName("savaDataBTNs")[0];
+const saveDataBTNs = document.getElementsByClassName("saveDataBTNs")[0];
 const removeDataBTN = document.getElementById("removeDataBTN");
 let finalGroups = []; //最終分組
 let isGroupingByRandom = false;
 let isExample = true;
-
+let historyCount = 0;
 
 //初始化
 (function initialize() {
@@ -21,13 +21,16 @@ let isExample = true;
   //填入預設的【分組用按鈕】
   let btns = "";
   for (let i = 4; i <= 7; i++) {
-    btns += `<button class="groupCountBTN ${i == 4 ? "active" : ""
-      }">${i}</button>`;
+    btns += `<button class="groupCountBTN ${
+      i == 4 ? "active" : ""
+    }">${i}</button>`;
   }
   groupCountBTNs.innerHTML = btns;
 
   //讀取並渲染保存的資料
-  let t, saveData = (t = localStorage.getItem("saveData")) === null ? [] : JSON.parse(t);
+  let t,
+    saveData =
+      (t = localStorage.getItem("saveData")) === null ? [] : JSON.parse(t);
   renderSaveData(saveData);
 })();
 
@@ -51,7 +54,6 @@ assignBTN.addEventListener("click", function () {
     for (let i = 0; i < memberSize; i += tG) {
       groupOfOrder.push(memberArray.slice(i, i + tG));
     }
-
   } else {
     //第一次照順序分組
     for (let i = 0; i < memberSize; i += tG) {
@@ -70,10 +72,12 @@ assignBTN.addEventListener("click", function () {
         finalGroups[i].push(groupOfOrder[j][i]);
       }
     }
-
   }
 
+  saveData();
+
   renderPage();
+
   if (!isExample) {
     saveData();
   }
@@ -106,7 +110,6 @@ function shuffle(array) {
 
 //頁面渲染
 function renderPage() {
-
   let outputData = "";
   for (let i = 1; i <= finalGroups.length; i++) {
     outputData += '<div class="groupCard">';
@@ -125,7 +128,7 @@ function renderPage() {
 
 // 清空分組名單
 clearBTN.addEventListener("click", () => {
-  Array.from(document.getElementsByTagName("textarea")).forEach(ta => {
+  Array.from(document.getElementsByTagName("textarea")).forEach((ta) => {
     ta.innerHTML = "";
     ta.value = "";
   });
@@ -135,9 +138,9 @@ clearBTN.addEventListener("click", () => {
 removeDataBTN.addEventListener("click", function () {
   if (confirm("移除所有歷史分組?")) {
     saveDataBTNs.innerHTML = "";
-    localStorage.removeItem("saveData")
+    localStorage.removeItem("saveData");
   }
-})
+});
 
 // 判斷總組數input是否為 4 - 7
 totalGroups.addEventListener("input", () => {
@@ -152,31 +155,37 @@ totalGroups.addEventListener("input", () => {
 //產生唯一識別UUID
 function getUUID() {
   var d = Date.now();
-  if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
+  if (
+    typeof performance !== "undefined" &&
+    typeof performance.now === "function"
+  ) {
     d += performance.now(); //use high-precision timer if available
   }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
     var r = (d + Math.random() * 16) % 16 | 0;
     d = Math.floor(d / 16);
-    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
   });
 }
 
 //切換【示範】狀態
 memberHome.addEventListener("change", () => {
   isExample = false;
-})
+});
 
 //保存分組資料
 function saveData() {
-
-  let t, saveData = (t = localStorage.getItem("saveData")) === null ? [] : JSON.parse(t);
+  let t,
+    saveData =
+      (t = localStorage.getItem("saveData")) === null ? [] : JSON.parse(t);
 
   saveData.push({
-    id: getUUID(), groups: finalGroups, originData: memberHome.value
+    id: getUUID(),
+    groups: finalGroups,
+    originData: memberHome.value,
   });
 
-  localStorage.setItem('saveData', JSON.stringify(saveData));
+  localStorage.setItem("saveData", JSON.stringify(saveData));
 
   renderSaveData(saveData);
 }
@@ -184,21 +193,34 @@ function saveData() {
 //渲染分組資料按鈕
 function renderSaveData(saveData) {
   let outPutBTNs = "";
-  saveData.forEach(s => {
-    outPutBTNs += `<button class='saveDataBTN' id='${s.id}'>${s.id.slice(0, 6)}</button>`;
-  })
+  saveData.forEach((s) => {
+    outPutBTNs += `<button class='saveDataBTN' id='${s.id}'>${s.id.slice(
+      0,
+      6
+    )}</button>`;
+  });
   saveDataBTNs.innerHTML = outPutBTNs;
 }
 
 //分組資料按鈕的點擊事件
-saveDataBTNs.addEventListener('click', function (e) {
-
+saveDataBTNs.addEventListener("click", function (e) {
   if (e.target.classList.contains("saveDataBTN")) {
-    targetGroup = JSON.parse(localStorage.getItem("saveData")).filter(item => item.id == e.target.id)[0]
+    targetGroup = JSON.parse(localStorage.getItem("saveData")).filter(
+      (item) => item.id == e.target.id
+    )[0];
     finalGroups = targetGroup.groups;
     totalGroups.value = targetGroup.groups.length;
     memberHome.value = targetGroup.originData;
     renderPage();
     totalGroups.dispatchEvent(new CustomEvent("input"));
+    const historyBTNs = document.querySelectorAll(".saveDataBTN");
+    Array(historyBTNs).map((a, b) => {
+      for (let x = 0; x < a.length; x++) {
+        a[x].classList.remove('active')
+        if (a[x].id == e.target.id,e.target) {
+          e.target.classList.add("active");
+        }
+      }
+    });
   }
-})
+});
